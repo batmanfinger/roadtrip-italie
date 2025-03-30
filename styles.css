@@ -1,0 +1,260 @@
+/* Styles généraux */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Styles de la sidebar */
+#sidebar {
+    width: 350px;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.header {
+    background-color: #3498db;
+    color: white;
+    padding: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header h1 {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.header p {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Styles de la liste des jours */
+.dayList {
+    list-style: none;
+}
+
+.dayItem {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dayItem:hover {
+    background-color: #edf2f7;
+}
+
+.dayTitle {
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dayDate {
+    font-size: 12px;
+    color: #666;
+}
+
+.activities {
+    margin-top: 10px;
+    padding-left: 10px;
+    font-size: 14px;
+    display: none;
+}
+
+.activity {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.activity:last-child {
+    border-bottom: none;
+}
+
+.activityTime {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.activityTitle {
+    margin: 3px 0;
+}
+
+.activityTips {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+.showActivities {
+    font-size: 12px;
+    color: #3498db;
+    cursor: pointer;
+}
+
+/* Styles du conteneur de carte */
+#map-container {
+    flex: 1;
+    height: 100%;
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Bouton pour basculer la sidebar */
+.toggle-sidebar {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background-color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+/* Légende de la carte */
+.legend {
+    position: absolute;
+    bottom: 30px;
+    right: 15px;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.legend-text {
+    font-size: 12px;
+}
+
+/* Styles des marqueurs */
+.marker-cluster {
+    background-color: rgba(52, 152, 219, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.marker-city, .marker-charging, .marker-visit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border-radius: 50%;
+    width: 30px !important;
+    height: 30px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.marker-city {
+    background-color: #3498db;
+}
+
+.marker-charging {
+    background-color: #e74c3c;
+}
+
+.marker-visit {
+    background-color: #2ecc71;
+}
+
+/* Animations pour les marqueurs */
+.marker-city i, .marker-charging i, .marker-visit i {
+    transition: transform 0.2s;
+}
+
+.marker-city:hover i, .marker-charging:hover i, .marker-visit:hover i {
+    transform: scale(1.2);
+}
+
+/* Styles des popups */
+.marker-popup {
+    font-size: 14px;
+}
+
+.marker-popup h3 {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.marker-popup p {
+    margin: 3px 0;
+    color: #666;
+}
+
+.leaflet-popup-content {
+    max-width: 300px;
+}
+
+/* Jour actif dans la liste */
+.active-day {
+    background-color: #e3f2fd;
+    border-left: 4px solid #3498db;
+}
+
+/* Bouton pour afficher/masquer les activités */
+.toggle-activities {
+    background: none;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.day-distance {
+    font-weight: bold;
+    color: #e74c3c;
+    margin-left: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar {
+        position: absolute;
+        transform: translateX(-100%);
+    }
+    
+    #sidebar.active {
+        transform: translateX(0);
+    }
+}

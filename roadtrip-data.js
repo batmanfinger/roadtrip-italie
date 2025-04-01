@@ -647,20 +647,8 @@ const roadtripData = {
             coordinates: [4.8400, 47.0258] // Beaune
         },
         {
-            time: "11:30-12:00",
-            activity: "Trajet Beaune - Dijon",
-            tips: "Court trajet sur l'A6",
-            coordinates: [5.0415, 47.3220] // Dijon
-        },
-        {
-            time: "12:00-13:30",
-            activity: "Déjeuner et recharge à Dijon",
-            tips: "Dernière recharge importante avant Paris",
-            coordinates: [5.0415, 47.3220] // Dijon
-        },
-        {
-            time: "13:30-18:00",
-            activity: "Trajet Dijon - Marsinval",
+            time: "11:30-18:00",
+            activity: "Trajet Beaune - Marsinval",
             tips: "Long trajet sur autoroute",
             icon: "fas fa-house",
             iconColor: "#8e44ad",
@@ -692,6 +680,5 @@ const mainLocations = [
     { name: "Chambéry", coords: [5.9175, 45.5647] },
     { name: "Château de Pizay", coords: [4.6500, 46.1500] },
     { name: "Lyon", coords: [4.8357, 45.7640] },
-    { name: "Dijon", coords: [5.0415, 47.3220] },
     { name: "Marsinval", coords: [1.9917, 48.9214] }
 ];

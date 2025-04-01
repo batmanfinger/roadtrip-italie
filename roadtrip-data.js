@@ -569,86 +569,107 @@ const roadtripData = {
                 }
             ]
         },
+        // Jour 16
+{
+    day: 16,
+    title: "Gênes - Château de Pizay",
+    date: "2025-04-26",
+    activities: [
         {
-            day: 16,
-            title: "Gênes - Château de Pizay",
-            date: "2025-04-26",
-            activities: [
-                {
-                    time: "09:00-12:00",
-                    activity: "Trajet Gênes - Turin",
-                    tips: "Première étape de la journée",
-                    coordinates: [7.6868, 45.0703] // Turin
-                },
-                {
-                    time: "12:00-13:30",
-                    activity: "Déjeuner et recharge à Turin",
-                    tips: "Recharge nécessaire avant la traversée des Alpes",
-                    coordinates: [7.6868, 45.0703] // Turin
-                },
-                {
-                    time: "13:30-17:00",
-                    activity: "Trajet Turin - Château de Pizay",
-                    tips: "Passage par le tunnel du Fréjus et Chambéry",
-                    coordinates: [5.9175, 45.5647] // Chambéry
-                },
-                {
-                    time: "18:00",
-                    activity: "Arrivée au Château de Pizay",
-                    tips: "Installation et détente après la journée de route",
-                    coordinates: [4.6500, 46.1500] // Château de Pizay
-                },
-                {
-                    time: "20:00",
-                    activity: "Dîner au Château",
-                    tips: "Dégustation de vins locaux",
-                    coordinates: [4.6500, 46.1500] // Château de Pizay
-                }
-            ]
+            time: "09:00-11:30",
+            activity: "Trajet Gênes - Turin",
+            tips: "Route côtière puis intérieure",
+            coordinates: [7.6868, 45.0703] // Turin
         },
         {
-            day: 17,
-            title: "Château de Pizay - Marsinval",
-            date: "2025-04-27",
-            activities: [
-                {
-                    time: "09:00-10:30",
-                    activity: "Départ du Château de Pizay",
-                    tips: "Batterie pleine pour le retour",
-                    coordinates: [4.6500, 46.1500] // Château de Pizay
-                },
-                {
-                    time: "10:30-12:00",
-                    activity: "Trajet vers Lyon",
-                    tips: "Première étape de la journée",
-                    coordinates: [4.8357, 45.7640] // Lyon
-                    },
-                {
-                    time: "12:00-13:30",
-                    activity: "Déjeuner et recharge à Lyon",
-                    tips: "Pause avant la longue route vers Paris",
-                    coordinates: [4.8357, 45.7640] // Lyon
-                },
-                {
-                    time: "13:30-15:30",
-                    activity: "Trajet Lyon - Dijon",
-                    tips: "Trajet sur autoroute",
-                    coordinates: [5.0415, 47.3220] // Dijon
-                },
-                {
-                    time: "15:30-16:00",
-                    activity: "Recharge rapide à Dijon",
-                    tips: "Dernière recharge importante avant Paris",
-                    coordinates: [5.0415, 47.3220] // Dijon
-                },
-                {
-                    time: "16:00-18:00",
-                    activity: "Trajet final vers Marsinval",
-                    tips: "Dernière étape, arrivée prévue avant 18h",
-                    coordinates: [1.9917, 48.9214] // Marsinval
-                }
-            ]
+            time: "11:30-13:00",
+            activity: "Déjeuner et recharge à Turin",
+            tips: "Dernière recharge en Italie",
+            coordinates: [7.6868, 45.0703] // Turin
+        },
+        {
+            time: "13:00-15:30",
+            activity: "Trajet Turin - Chambéry",
+            tips: "Passage par le tunnel du Fréjus, prévoir 45€ de péage",
+            coordinates: [5.9175, 45.5647] // Chambéry
+        },
+        {
+            time: "15:30-16:30",
+            activity: "Trajet Chambéry - Lyon",
+            tips: "Autoroute A43",
+            coordinates: [4.8357, 45.7640] // Lyon
+        },
+        {
+            time: "16:30-17:30",
+            activity: "Trajet Lyon - Château de Pizay",
+            tips: "Dernière étape de la journée",
+            coordinates: [4.7324, 46.1738] // Château de Pizay
+        },
+        {
+            time: "18:00",
+            activity: "Arrivée au Château de Pizay",
+            tips: "Installation et détente",
+            coordinates: [4.7324, 46.1738] // Château de Pizay
+        },
+        {
+            time: "20:00",
+            activity: "Dîner au Château",
+            tips: "Dégustation de vins du Beaujolais",
+            coordinates: [4.7324, 46.1738] // Château de Pizay
         }
+    ]
+}
+
+// Jour 17
+{
+    day: 17,
+    title: "Château de Pizay - Marsinval",
+    date: "2025-04-27",
+    activities: [
+        {
+            time: "09:00-09:30",
+            activity: "Départ du Château de Pizay",
+            tips: "Batterie pleine pour le retour",
+            coordinates: [4.7324, 46.1738] // Château de Pizay
+        },
+        {
+            time: "09:30-10:00",
+            activity: "Trajet vers Mâcon",
+            tips: "Court trajet",
+            coordinates: [4.8330, 46.3069] // Mâcon
+        },
+        {
+            time: "10:00-11:30",
+            activity: "Trajet Mâcon - Beaune",
+            tips: "Autoroute A6",
+            coordinates: [4.8400, 47.0258] // Beaune
+        },
+        {
+            time: "11:30-12:00",
+            activity: "Trajet Beaune - Dijon",
+            tips: "Court trajet sur l'A6",
+            coordinates: [5.0415, 47.3220] // Dijon
+        },
+        {
+            time: "12:00-13:30",
+            activity: "Déjeuner et recharge à Dijon",
+            tips: "Dernière recharge importante avant Paris",
+            coordinates: [5.0415, 47.3220] // Dijon
+        },
+        {
+            time: "13:30-17:00",
+            activity: "Trajet Dijon - Paris",
+            tips: "Long trajet sur autoroute",
+            coordinates: [2.3522, 48.8566] // Paris
+        },
+        {
+            time: "17:00-18:00",
+            activity: "Trajet final vers Marsinval",
+            tips: "Dernière étape, arrivée prévue avant 18h",
+            coordinates: [1.9917, 48.9214] // Marsinval
+        }
+    ]
+}
     ]
 };
 

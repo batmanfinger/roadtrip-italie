@@ -618,7 +618,7 @@ const roadtripData = {
             coordinates: [4.7324, 46.1738] // Château de Pizay
         }
     ]
-}
+},
 
 // Jour 17
 {

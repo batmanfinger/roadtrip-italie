@@ -601,13 +601,13 @@ const roadtripData = {
         },
         {
             time: "16:30-17:30",
-            activity: "Trajet Lyon - Château de Pizay",
+            activity: "Trajet Lyon - Macon",
             tips: "Dernière étape de la journée",
             coordinates: [4.7324, 46.1738] // Château de Pizay
         },
         {
             time: "18:00",
-            activity: "Arrivée au Château de Pizay",
+            activity: "Arrivée à Macon",
             tips: "Installation et détente",
             coordinates: [4.7324, 46.1738] // Château de Pizay
         },

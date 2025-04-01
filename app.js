@@ -81,27 +81,25 @@ document.addEventListener('DOMContentLoaded', function() {
         return [coords[1], coords[0]]; // Inverser l'ordre pour Leaflet
     }
     
-    // Génération des icônes personnalisées avec Font Awesome
-    const cityIcon = L.divIcon({
-        className: 'marker-city',
-        html: '<i class="fas fa-city"></i>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-    });
+    // Fonction pour créer des icônes de marqueur personnalisées à partir de classes Font Awesome
+    function createMarkerIcon(iconClass, color) {
+        // Définir la couleur par défaut si non fournie
+        const bgColor = color || '#3498db';
+        
+        return L.divIcon({
+            className: 'marker-custom',
+            html: `<div style="background-color: ${bgColor}; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                    <i class="${iconClass}" style="color: white;"></i>
+                  </div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+    }
     
-    const chargingIcon = L.divIcon({
-        className: 'marker-charging',
-        html: '<i class="fas fa-charging-station"></i>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-    });
-    
-    const visitIcon = L.divIcon({
-        className: 'marker-visit',
-        html: '<i class="fas fa-camera"></i>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-    });
+    // Icônes par défaut pour la compatibilité avec le code existant
+    const cityIcon = createMarkerIcon('fas fa-city', '#3498db');
+    const chargingIcon = createMarkerIcon('fas fa-charging-station', '#e74c3c');
+    const visitIcon = createMarkerIcon('fas fa-camera', '#2ecc71');
     
     // Création des marqueurs pour chaque activité avec des popups
     roadtripData.days.forEach(day => {
@@ -110,17 +108,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         day.activities.forEach(activity => {
             if (activity.coordinates) {
-                let icon = cityIcon; // Par défaut
+                let icon;
                 
-                // Déterminer l'icône en fonction du type d'activité
-                if (activity.activity.toLowerCase().includes('recharge') ||
-                    activity.activity.toLowerCase().includes('superchargeur')) {
-                    icon = chargingIcon;
-                } else if (activity.activity.toLowerCase().includes('visite') ||
-                          activity.activity.toLowerCase().includes('musée') ||
-                          activity.activity.toLowerCase().includes('promenade') ||
-                          activity.activity.toLowerCase().includes('exploration')) {
-                    icon = visitIcon;
+                // Utiliser l'icône personnalisée si définie dans le JSON
+                if (activity.icon) {
+                    icon = createMarkerIcon(activity.icon, activity.iconColor);
+                } else {
+                    // Détecter automatiquement l'icône en fonction du type d'activité
+                    if (activity.activity.toLowerCase().includes('recharge') ||
+                        activity.activity.toLowerCase().includes('superchargeur')) {
+                        icon = createMarkerIcon('fas fa-charging-station', '#e74c3c');
+                    } else if (activity.activity.toLowerCase().includes('visite') ||
+                              activity.activity.toLowerCase().includes('musée') ||
+                              activity.activity.toLowerCase().includes('promenade') ||
+                              activity.activity.toLowerCase().includes('exploration')) {
+                        icon = createMarkerIcon('fas fa-camera', '#2ecc71');
+                    } else if (activity.activity.toLowerCase().includes('hôtel') ||
+                              activity.activity.toLowerCase().includes('hotel') ||
+                              activity.activity.toLowerCase().includes('logement')) {
+                        icon = createMarkerIcon('fas fa-bed', '#9b59b6');
+                    } else if (activity.activity.toLowerCase().includes('restaurant') ||
+                              activity.activity.toLowerCase().includes('dîner') ||
+                              activity.activity.toLowerCase().includes('déjeuner') ||
+                              activity.activity.toLowerCase().includes('repas')) {
+                        icon = createMarkerIcon('fas fa-utensils', '#f39c12');
+                    } else {
+                        icon = createMarkerIcon('fas fa-map-marker-alt', '#3498db');
+                    }
                 }
                 
                 // Corriger les coordonnées (inversion longitude/latitude)

@@ -4,6 +4,10 @@
  */
 
 (function() {
+    // Compteur pour les tentatives d'initialisation
+    let initAttempts = 0;
+    const MAX_ATTEMPTS = 10;
+
     // Styles CSS pour l'UI d'ajout d'activité
     function injectStyles() {
         const styles = `
@@ -187,7 +191,7 @@
                     <div class="form-group">
                         <label for="activityDay">Jour:</label>
                         <select id="activityDay" required>
-                            ${roadtripData.days.map(day => 
+                            ${window.roadtripData.days.map(day => 
                                 `<option value="${day.day}">Jour ${day.day}: ${day.title}</option>`
                             ).join('')}
                         </select>
@@ -231,12 +235,57 @@
 
     // Initialisation de la fonctionnalité
     function initActivityManager() {
+        // Vérifier que tous les éléments nécessaires sont disponibles
+        if (!window.map) {
+            console.log("La carte n'est pas encore chargée");
+        }
+        if (!window.roadtripData) {
+            console.log("Les données du roadtrip ne sont pas encore chargées");
+        }
+        if (!window.markerGroups) {
+            console.log("Les groupes de marqueurs ne sont pas encore chargés");
+        }
+        
         // S'assurer que la page est complètement chargée et que les variables nécessaires existent
         if (!window.map || !window.roadtripData || !window.markerGroups) {
-            console.error("Les éléments nécessaires ne sont pas encore chargés. Nouvel essai dans 1 seconde.");
-            setTimeout(initActivityManager, 1000);
+            initAttempts++;
+            if (initAttempts <= MAX_ATTEMPTS) {
+                console.log(`Tentative d'initialisation ${initAttempts}/${MAX_ATTEMPTS}. Les éléments nécessaires ne sont pas encore chargés. Nouvel essai dans 1 seconde.`);
+                setTimeout(initActivityManager, 1000);
+            } else {
+                console.log("Nombre maximum de tentatives atteint. Initialisation manuelle requise.");
+                // Créer une fonction globale pour une initialisation manuelle
+                window.manualInitActivityManager = function() {
+                    console.log("Initialisation manuelle du gestionnaire d'activités");
+                    initAttempts = 0;
+                    initActivityManager();
+                };
+                // Créer un bouton pour l'initialisation manuelle
+                const button = document.createElement('button');
+                button.id = 'manualInitButton';
+                button.innerHTML = 'Initialiser le gestionnaire d\'activités';
+                button.style.position = 'fixed';
+                button.style.bottom = '130px';
+                button.style.left = '15px';
+                button.style.zIndex = '1001';
+                button.style.backgroundColor = '#3498db';
+                button.style.color = 'white';
+                button.style.border = 'none';
+                button.style.borderRadius = '4px';
+                button.style.padding = '8px 12px';
+                button.onclick = window.manualInitActivityManager;
+                document.body.appendChild(button);
+            }
             return;
         }
+
+        // Si le bouton d'initialisation manuelle existe, le supprimer
+        const manualInitButton = document.getElementById('manualInitButton');
+        if (manualInitButton) {
+            manualInitButton.remove();
+        }
+
+        console.log("Tous les éléments sont chargés, initialisation du gestionnaire d'activités");
 
         // Injecter les styles CSS
         injectStyles();
@@ -504,11 +553,11 @@
         });
     }
     
-    // Exécuter l'initialisation lorsque le DOM est chargé
+    // Exécuter l'initialisation lorsque le DOM est chargé et les scripts ont eu du temps pour s'exécuter
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(initActivityManager, 1000));
+        document.addEventListener('DOMContentLoaded', () => setTimeout(initActivityManager, 2000));
     } else {
-        // Le DOM est déjà chargé, attendre que la carte soit initialisée
-        setTimeout(initActivityManager, 1000);
+        // Le DOM est déjà chargé, attendre un peu plus longtemps pour que les autres scripts s'exécutent
+        setTimeout(initActivityManager, 2000);
     }
 })();

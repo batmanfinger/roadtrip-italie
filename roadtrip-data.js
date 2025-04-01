@@ -659,15 +659,9 @@ const roadtripData = {
             coordinates: [5.0415, 47.3220] // Dijon
         },
         {
-            time: "13:30-17:00",
-            activity: "Trajet Dijon - Paris",
+            time: "13:30-18:00",
+            activity: "Trajet Dijon - Marsinval",
             tips: "Long trajet sur autoroute",
-            coordinates: [2.3522, 48.8566] // Paris
-        },
-        {
-            time: "17:00-18:00",
-            activity: "Trajet final vers Marsinval",
-            tips: "Dernière étape, arrivée prévue avant 18h",
             coordinates: [1.9917, 48.9214] // Marsinval
         }
     ]

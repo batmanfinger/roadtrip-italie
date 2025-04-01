@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestionnaire d'activités</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 8px; }
+        button { padding: 10px 15px; background-color: #3498db; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Ajouter une activité</h1>
+    <form id="activityForm">
+        <div class="form-group">
+            <label for="dayNumber">Jour:</label>
+            <input type="number" id="dayNumber" min="1" max="17" required>
+        </div>
+        <div class="form-group">
+            <label for="activityTime">Heure:</label>
+            <input type="text" id="activityTime" placeholder="ex: 14:30-16:00" required>
+        </div>
+        <div class="form-group">
+            <label for="activityTitle">Activité:</label>
+            <input type="text" id="activityTitle" required>
+        </div>
+        <div class="form-group">
+            <label for="activityTips">Conseils/Notes:</label>
+            <textarea id="activityTips"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="activityLink">Lien (optionnel):</label>
+            <input type="url" id="activityLink">
+        </div>
+        <div class="form-group">
+            <label for="latitude">Latitude:</label>
+            <input type="number" id="latitude" step="0.00001" required>
+        </div>
+        <div class="form-group">
+            <label for="longitude">Longitude:</label>
+            <input type="number" id="longitude" step="0.00001" required>
+        </div>
+        <button type="submit">Ajouter l'activité</button>
+    </form>
+    
+    <div id="output" style="margin-top: 20px; white-space: pre-wrap;"></div>
+    
+    <script>
+        document.getElementById('activityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const activity = {
+                time: document.getElementById('activityTime').value,
+                activity: document.getElementById('activityTitle').value,
+                tips: document.getElementById('activityTips').value || "",
+                link: document.getElementById('activityLink').value || "",
+                coordinates: [
+                    parseFloat(document.getElementById('longitude').value),
+                    parseFloat(document.getElementById('latitude').value)
+                ]
+            };
+            
+            const dayNumber = parseInt(document.getElementById('dayNumber').value);
+            
+            // Afficher le résultat
+            const output = document.getElementById('output');
+            output.textContent = `// Ajoutez ceci à votre fichier roadtrip-data.js, dans le tableau activities du jour ${dayNumber}:\n\n` +
+                JSON.stringify(activity, null, 4);
+        });
+    </script>
+</body>
+</html>

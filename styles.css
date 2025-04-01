@@ -258,3 +258,15 @@ body {
         transform: translateX(0);
     }
 }
+
+/* Style pour la consommation d'énergie */
+.day-distance {
+    font-weight: bold;
+    color: #3498db;
+    margin-left: 5px;
+}
+
+/* Alerte pour consommation élevée */
+.high-consumption {
+    color: #e74c3c;
+}

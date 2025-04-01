@@ -364,43 +364,52 @@ async function fetchRouteAndDisplay(start, end, color, weight, opacity, dayNumbe
         
         // Si nous avons une distance pour ce jour
         if (dayDistances[dayNumber]) {
-            // Préparer le texte avec distance et énergie
+            // Préparer le texte avec distance
             const distance = dayDistances[dayNumber];
+            let displayText = `(${distance} km`;
             
-            // Données d'énergie, si disponibles
-            let energyText = '';
-            let energyClass = '';
-            let batteryPercent = 0;
-            
-            if (dayEnergyConsumption[dayNumber]) {
+            // Ajouter information d'énergie si disponible
+            if (dayEnergyConsumption && dayEnergyConsumption[dayNumber]) {
                 const energy = dayEnergyConsumption[dayNumber].toFixed(1);
-                batteryPercent = ((energy / teslaConfig.batteryCapacity) * 100).toFixed(0);
-                energyText = ` | ${energy} kWh (${batteryPercent}%)`;
-                
-                // Ajouter classe si consommation élevée
-                if (batteryPercent > 80) {
-                    energyClass = 'high-consumption';
-                }
+                const percent = ((energy / teslaConfig.batteryCapacity) * 100).toFixed(0);
+                displayText += ` | ${energy} kWh (${percent}%)`;
             }
             
-            // Si l'élément span existe déjà
+            // Fermer la parenthèse
+            displayText += ")";
+            
+            // Mettre à jour ou créer l'élément span
             if (distanceSpan) {
-                distanceSpan.textContent = `(${distance} km${energyText})`;
-                if (energyText && batteryPercent > 80) {
-                    distanceSpan.classList.add('high-consumption');
+                distanceSpan.textContent = displayText;
+                
+                // Ajouter classe si haute consommation
+                if (dayEnergyConsumption && dayEnergyConsumption[dayNumber]) {
+                    const energy = dayEnergyConsumption[dayNumber];
+                    const percent = (energy / teslaConfig.batteryCapacity) * 100;
+                    if (percent > 80) {
+                        distanceSpan.classList.add('high-consumption');
+                    } else {
+                        distanceSpan.classList.remove('high-consumption');
+                    }
                 }
-            } 
-            // Sinon créer un nouveau span
-            else {
+            } else {
+                // Créer un nouveau span si nécessaire
                 const dateDiv = dayItem.querySelector('.dayDate');
                 if (dateDiv) {
-                    const distanceElement = document.createElement('span');
-                    distanceElement.className = 'day-distance';
-                    if (energyText && batteryPercent > 80) {
-                        distanceElement.classList.add('high-consumption');
+                    const newSpan = document.createElement('span');
+                    newSpan.className = 'day-distance';
+                    newSpan.textContent = displayText;
+                    
+                    // Ajouter classe si haute consommation
+                    if (dayEnergyConsumption && dayEnergyConsumption[dayNumber]) {
+                        const energy = dayEnergyConsumption[dayNumber];
+                        const percent = (energy / teslaConfig.batteryCapacity) * 100;
+                        if (percent > 80) {
+                            newSpan.classList.add('high-consumption');
+                        }
                     }
-                    distanceElement.textContent = ` (${distance} km${energyText})`;
-                    dateDiv.appendChild(distanceElement);
+                    
+                    dateDiv.appendChild(newSpan);
                 }
             }
         }

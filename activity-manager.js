@@ -1,12 +1,55 @@
 /**
  * Activity Manager - Module d'ajout d'activités pour Roadtrip en Italie
- * Ce fichier peut être inclus directement sans modification des fichiers existants
+ * Version sans eval() pour respecter la politique CSP
  */
 
 (function() {
-    // Compteur pour les tentatives d'initialisation
-    let initAttempts = 0;
-    const MAX_ATTEMPTS = 10;
+    // Attendre que la page soit complètement chargée
+    window.addEventListener('load', function() {
+        console.log("Page chargée, démarrage de l'initialisation du gestionnaire d'activités");
+        // Attendre encore un peu pour s'assurer que les scripts sont exécutés
+        setTimeout(checkAndInitActivityManager, 3000);
+    });
+
+    // Vérifier les dépendances et initialiser
+    function checkAndInitActivityManager() {
+        if (typeof L !== 'undefined' && 
+            typeof window.map !== 'undefined' && 
+            typeof window.roadtripData !== 'undefined' && 
+            typeof window.markerGroups !== 'undefined') {
+            
+            console.log("Toutes les dépendances sont disponibles, initialisation du gestionnaire d'activités");
+            initActivityManager();
+        } else {
+            console.log("Dépendances non disponibles:", {
+                "Leaflet": typeof L !== 'undefined',
+                "map": typeof window.map !== 'undefined',
+                "roadtripData": typeof window.roadtripData !== 'undefined',
+                "markerGroups": typeof window.markerGroups !== 'undefined'
+            });
+            
+            // Ajouter un bouton pour initialisation manuelle
+            if (!document.getElementById('manualInitButton')) {
+                const button = document.createElement('button');
+                button.id = 'manualInitButton';
+                button.innerHTML = 'Initialiser le gestionnaire d\'activités';
+                button.style.position = 'fixed';
+                button.style.bottom = '130px';
+                button.style.left = '15px';
+                button.style.zIndex = '1001';
+                button.style.backgroundColor = '#3498db';
+                button.style.color = 'white';
+                button.style.border = 'none';
+                button.style.borderRadius = '4px';
+                button.style.padding = '8px 12px';
+                button.onclick = function() {
+                    document.getElementById('manualInitButton').remove();
+                    checkAndInitActivityManager();
+                };
+                document.body.appendChild(button);
+            }
+        }
+    }
 
     // Styles CSS pour l'UI d'ajout d'activité
     function injectStyles() {
@@ -171,7 +214,7 @@
 
         const styleSheet = document.createElement("style");
         styleSheet.type = "text/css";
-        styleSheet.innerText = styles;
+        styleSheet.textContent = styles;
         document.head.appendChild(styleSheet);
     }
 
@@ -182,6 +225,12 @@
         modal.id = 'addActivityModal';
         modal.className = 'modal';
         
+        // Générer les options pour les jours
+        let daysOptions = '';
+        window.roadtripData.days.forEach(day => {
+            daysOptions += `<option value="${day.day}">Jour ${day.day}: ${day.title}</option>`;
+        });
+        
         // Contenu du modal
         modal.innerHTML = `
             <div class="modal-content">
@@ -191,9 +240,7 @@
                     <div class="form-group">
                         <label for="activityDay">Jour:</label>
                         <select id="activityDay" required>
-                            ${window.roadtripData.days.map(day => 
-                                `<option value="${day.day}">Jour ${day.day}: ${day.title}</option>`
-                            ).join('')}
+                            ${daysOptions}
                         </select>
                     </div>
                     <div class="form-group">
@@ -235,58 +282,6 @@
 
     // Initialisation de la fonctionnalité
     function initActivityManager() {
-        // Vérifier que tous les éléments nécessaires sont disponibles
-        if (!window.map) {
-            console.log("La carte n'est pas encore chargée");
-        }
-        if (!window.roadtripData) {
-            console.log("Les données du roadtrip ne sont pas encore chargées");
-        }
-        if (!window.markerGroups) {
-            console.log("Les groupes de marqueurs ne sont pas encore chargés");
-        }
-        
-        // S'assurer que la page est complètement chargée et que les variables nécessaires existent
-        if (!window.map || !window.roadtripData || !window.markerGroups) {
-            initAttempts++;
-            if (initAttempts <= MAX_ATTEMPTS) {
-                console.log(`Tentative d'initialisation ${initAttempts}/${MAX_ATTEMPTS}. Les éléments nécessaires ne sont pas encore chargés. Nouvel essai dans 1 seconde.`);
-                setTimeout(initActivityManager, 1000);
-            } else {
-                console.log("Nombre maximum de tentatives atteint. Initialisation manuelle requise.");
-                // Créer une fonction globale pour une initialisation manuelle
-                window.manualInitActivityManager = function() {
-                    console.log("Initialisation manuelle du gestionnaire d'activités");
-                    initAttempts = 0;
-                    initActivityManager();
-                };
-                // Créer un bouton pour l'initialisation manuelle
-                const button = document.createElement('button');
-                button.id = 'manualInitButton';
-                button.innerHTML = 'Initialiser le gestionnaire d\'activités';
-                button.style.position = 'fixed';
-                button.style.bottom = '130px';
-                button.style.left = '15px';
-                button.style.zIndex = '1001';
-                button.style.backgroundColor = '#3498db';
-                button.style.color = 'white';
-                button.style.border = 'none';
-                button.style.borderRadius = '4px';
-                button.style.padding = '8px 12px';
-                button.onclick = window.manualInitActivityManager;
-                document.body.appendChild(button);
-            }
-            return;
-        }
-
-        // Si le bouton d'initialisation manuelle existe, le supprimer
-        const manualInitButton = document.getElementById('manualInitButton');
-        if (manualInitButton) {
-            manualInitButton.remove();
-        }
-
-        console.log("Tous les éléments sont chargés, initialisation du gestionnaire d'activités");
-
         // Injecter les styles CSS
         injectStyles();
         
@@ -374,14 +369,20 @@
                 const day = roadtripData.days.find(d => d.day === dayNumber);
                 
                 if (day && activitiesContainer) {
+                    // Construire le HTML des activités
+                    let activitiesHTML = '';
+                    day.activities.forEach(activity => {
+                        activitiesHTML += `
+                            <div class="activity">
+                                <div class="activityTime">${activity.time}</div>
+                                <div class="activityTitle">${activity.activity}</div>
+                                ${activity.tips ? `<div class="activityTips">${activity.tips}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                    
                     // Mettre à jour le contenu des activités
-                    activitiesContainer.innerHTML = day.activities.map(activity => `
-                        <div class="activity">
-                            <div class="activityTime">${activity.time}</div>
-                            <div class="activityTitle">${activity.activity}</div>
-                            ${activity.tips ? `<div class="activityTips">${activity.tips}</div>` : ''}
-                        </div>
-                    `).join('');
+                    activitiesContainer.innerHTML = activitiesHTML;
                 }
             }
         }
@@ -390,53 +391,70 @@
         function addActivityMarker(activity, dayNumber) {
             if (activity.coordinates) {
                 // Accéder aux icônes définies dans l'application
-                const cityIcon = window.cityIcon || L.divIcon({
-                    className: 'marker-city',
-                    html: '<i class="fas fa-city"></i>',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
+                let icon;
                 
-                const chargingIcon = window.chargingIcon || L.divIcon({
-                    className: 'marker-charging',
-                    html: '<i class="fas fa-charging-station"></i>',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
-                
-                const visitIcon = window.visitIcon || L.divIcon({
-                    className: 'marker-visit',
-                    html: '<i class="fas fa-camera"></i>',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
-                
-                // Déterminer l'icône en fonction du type d'activité
-                let icon = cityIcon; // Par défaut
-                
-                if (activity.activity.toLowerCase().includes('recharge') ||
-                    activity.activity.toLowerCase().includes('superchargeur')) {
-                    icon = chargingIcon;
-                } else if (activity.activity.toLowerCase().includes('visite') ||
-                        activity.activity.toLowerCase().includes('musée') ||
-                        activity.activity.toLowerCase().includes('promenade') ||
-                        activity.activity.toLowerCase().includes('exploration')) {
-                    icon = visitIcon;
+                if (window.cityIcon && window.chargingIcon && window.visitIcon) {
+                    // Utiliser les icônes existantes
+                    icon = window.cityIcon; // Par défaut
+                    
+                    // Déterminer l'icône en fonction du type d'activité
+                    if (activity.activity.toLowerCase().includes('recharge') ||
+                        activity.activity.toLowerCase().includes('superchargeur')) {
+                        icon = window.chargingIcon;
+                    } else if (activity.activity.toLowerCase().includes('visite') ||
+                            activity.activity.toLowerCase().includes('musée') ||
+                            activity.activity.toLowerCase().includes('promenade') ||
+                            activity.activity.toLowerCase().includes('exploration')) {
+                        icon = window.visitIcon;
+                    }
+                } else {
+                    // Créer de nouvelles icônes si nécessaire
+                    if (activity.activity.toLowerCase().includes('recharge') ||
+                        activity.activity.toLowerCase().includes('superchargeur')) {
+                        icon = L.divIcon({
+                            className: 'marker-charging',
+                            html: '<i class="fas fa-charging-station"></i>',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                    } else if (activity.activity.toLowerCase().includes('visite') ||
+                            activity.activity.toLowerCase().includes('musée') ||
+                            activity.activity.toLowerCase().includes('promenade') ||
+                            activity.activity.toLowerCase().includes('exploration')) {
+                        icon = L.divIcon({
+                            className: 'marker-visit',
+                            html: '<i class="fas fa-camera"></i>',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                    } else {
+                        icon = L.divIcon({
+                            className: 'marker-city',
+                            html: '<i class="fas fa-city"></i>',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                    }
                 }
                 
                 // Corriger les coordonnées (inversion longitude/latitude)
-                const correctedCoords = window.correctCoordinates ? 
-                    window.correctCoordinates(activity.coordinates) : 
-                    [activity.coordinates[1], activity.coordinates[0]]; // Fallback
+                let correctedCoords;
+                if (typeof window.correctCoordinates === 'function') {
+                    correctedCoords = window.correctCoordinates(activity.coordinates);
+                } else {
+                    // Fonction de secours
+                    correctedCoords = [activity.coordinates[1], activity.coordinates[0]];
+                }
                 
                 // Créer le marqueur avec les coordonnées corrigées
                 const marker = L.marker(correctedCoords, { icon: icon });
                 
                 // Créer le contenu du popup
+                const day = roadtripData.days.find(d => d.day === dayNumber);
                 let popupContent = `
                     <div class="marker-popup">
                         <h3>${activity.activity}</h3>
-                        <p><strong>Jour ${dayNumber}:</strong> ${roadtripData.days.find(d => d.day === dayNumber).title}</p>
+                        <p><strong>Jour ${dayNumber}:</strong> ${day.title}</p>
                         <p><strong>Horaire:</strong> ${activity.time}</p>
                 `;
                 
@@ -464,7 +482,7 @@
                 }
                 
                 // Optionnellement, mettre à jour les distances et la consommation d'énergie
-                if (window.updateDayDistances && typeof window.updateDayDistances === 'function') {
+                if (typeof window.updateDayDistances === 'function') {
                     setTimeout(window.updateDayDistances, 500);
                 }
             }
@@ -551,13 +569,5 @@
         button.addEventListener('click', () => {
             modal.style.display = 'block';
         });
-    }
-    
-    // Exécuter l'initialisation lorsque le DOM est chargé et les scripts ont eu du temps pour s'exécuter
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(initActivityManager, 2000));
-    } else {
-        // Le DOM est déjà chargé, attendre un peu plus longtemps pour que les autres scripts s'exécutent
-        setTimeout(initActivityManager, 2000);
     }
 })();

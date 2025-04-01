@@ -421,115 +421,127 @@ async function fetchRouteAndDisplay(start, end, color, weight, opacity, dayNumbe
         const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#d35400'];
         
         // Définition des trajets spéciaux qui nécessitent un traitement particulier
-        const specialRoutes = {
-            // Jour 3: Milan - Côme - Vérone
-            3: async (day, color) => {
-                const milanCoords = [9.1900, 45.4642]; // Milan
-                const comeCoords = [9.4012, 45.8080]; // Côme
-                const tremezzo = [9.2296, 45.9878]; // Villa Carlotta/Tremezzo
-                const varennaCoords = [9.2840, 46.0112]; // Varenna
-                const bergamoCoords = [9.6700, 45.6983]; // Bergamo
-                const veroneCoords = [10.9916, 45.4384]; // Vérone
-                
-                // Milan à Côme
-               await fetchRouteAndDisplay(milanCoords, comeCoords, color, 4, 0.7, day.day, 'city', 'mild');
-                // Côme à Tremezzo
-                await fetchRouteAndDisplay(comeCoords, tremezzo, color, 4, 0.7, day.day, 'mountain', 'mild');
-                // Traversée en ferry (ligne pointillée)
-                const ferryLine = L.polyline([
-                    correctCoordinates(tremezzo), 
-                    correctCoordinates(varennaCoords)
-                ], {
-                    color: color,
-                    weight: 3,
-                    opacity: 0.7,
-                    dashArray: '5, 5'
-                }).addTo(map);
-                // Varenna à Bergamo
-                await fetchRouteAndDisplay(varennaCoords, bergamoCoords, color, 4, 0.7, day.day);
-                // Bergamo à Vérone
-                await fetchRouteAndDisplay(bergamoCoords, veroneCoords, color, 4, 0.7, day.day);
-                
-                return true;
-            },
-            
-            // Jour 10: Sienne - Rome via Grosseto
-            10: async (day, color) => {
-                const sienneCoords = [11.3301, 43.3184]; // Sienne
-                const grossetoCoords = [11.144781, 42.782847]; // Grosseto
-                const romeCoords = [12.4964, 41.9028]; // Rome
-                
-                // Sienne à Grosseto
-                await fetchRouteAndDisplay(sienneCoords, grossetoCoords, color, 4, 0.7, day.day);
-                // Grosseto à Rome
-                await fetchRouteAndDisplay(grossetoCoords, romeCoords, color, 4, 0.7, day.day);
-                
-                return true;
-            },
-            
-            // Jour 12: Rome - Naples - Sorrento
-            12: async (day, color) => {
-                const romeCoords = [12.4964, 41.9028]; // Rome
-                const naplesCoords = [14.2681, 40.8518]; // Naples
-                const pompeiiCoords = [14.4851, 40.7499]; // Pompéi
-                const sorrentoCoords = [14.3650, 40.6263]; // Sorrento
-                
-                // Rome à Naples
-                await fetchRouteAndDisplay(romeCoords, naplesCoords, color, 4, 0.7, day.day);
-                // Naples à Pompéi
-                await fetchRouteAndDisplay(naplesCoords, pompeiiCoords, color, 4, 0.7, day.day);
-                // Pompéi à Sorrento
-                await fetchRouteAndDisplay(pompeiiCoords, sorrentoCoords, color, 4, 0.7, day.day);
-                
-                return true;
-            },
-            
-            // Jour 16: La Spezia - Suisse (Andermatt)
-            16: async (day, color) => {
-                const laSpezia = [9.8259, 44.1024]; // La Spezia
-                const milan = [9.1900, 45.4642]; // Milan
-                //const como = [9.4012, 45.8080]; // Côme
-                const lugano = [8.9520, 46.0037]; // Lugano
-                const bellinzona = [9.0259, 46.1956]; // Bellinzona
-                const andermatt = [8.5944, 46.6376]; // Andermatt
-                
-                // La Spezia à Milan
-                await fetchRouteAndDisplay(laSpezia, milan, color, 4, 0.7, day.day);
-                // Milan à Côme
-                await fetchRouteAndDisplay(milan, lugano, color, 4, 0.7, day.day);
-                // Côme à Lugano
-                //await fetchRouteAndDisplay(como, lugano, color, 4, 0.7, day.day);
-                // Lugano à Bellinzona
-                await fetchRouteAndDisplay(lugano, bellinzona, color, 4, 0.7, day.day);
-                // Bellinzona à Andermatt
-                await fetchRouteAndDisplay(bellinzona, andermatt, color, 4, 0.7, day.day, 'mountain', 'cold');
-                
-                return true;
-            },
-            
-            // Jour 17: Suisse (Andermatt) - Paris
-            17: async (day, color) => {
-                const andermatt = [8.5944, 46.6376]; // Andermatt
-                const basel = [7.5886, 47.5596]; // Bâle
-                const mulhouse = [7.3389, 47.7508]; // Mulhouse
-                const langres = [5.3347, 47.8624]; // Langres
-                const troyes = [4.0758, 48.2973]; // Troyes
-                const paris = [2.3522, 48.8566]; // Paris
-                
-                // Andermatt à Bâle
-                await fetchRouteAndDisplay(andermatt, basel, color, 4, 0.7, day.day);
-                // Bâle à Mulhouse
-                await fetchRouteAndDisplay(basel, mulhouse, color, 4, 0.7, day.day);
-                // Mulhouse à Langres
-                await fetchRouteAndDisplay(mulhouse, langres, color, 4, 0.7, day.day);
-                // Langres à Troyes
-                await fetchRouteAndDisplay(langres, troyes, color, 4, 0.7, day.day);
-                // Troyes à Paris
-                await fetchRouteAndDisplay(troyes, paris, color, 4, 0.7, day.day);
-                
-                return true;
-            }
-        };
+        // Définition des trajets spéciaux qui nécessitent un traitement particulier
+const specialRoutes = {
+    // Jour 3: Milan - Côme - Vérone
+    3: async (day, color) => {
+        const milanCoords = [9.1900, 45.4642]; // Milan
+        const comeCoords = [9.4012, 45.8080]; // Côme
+        const tremezzo = [9.2296, 45.9878]; // Villa Carlotta/Tremezzo
+        const varennaCoords = [9.2840, 46.0112]; // Varenna
+        const bergamoCoords = [9.6700, 45.6983]; // Bergamo
+        const veroneCoords = [10.9916, 45.4384]; // Vérone
+        
+        // Milan à Côme
+        await fetchRouteAndDisplay(milanCoords, comeCoords, color, 4, 0.7, day.day, 'city', 'mild');
+        // Côme à Tremezzo
+        await fetchRouteAndDisplay(comeCoords, tremezzo, color, 4, 0.7, day.day, 'mountain', 'mild');
+        // Traversée en ferry (ligne pointillée)
+        const ferryLine = L.polyline([
+            correctCoordinates(tremezzo), 
+            correctCoordinates(varennaCoords)
+        ], {
+            color: color,
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '5, 5'
+        }).addTo(map);
+        // Varenna à Bergamo
+        await fetchRouteAndDisplay(varennaCoords, bergamoCoords, color, 4, 0.7, day.day, 'mountain', 'mild');
+        // Bergamo à Vérone
+        await fetchRouteAndDisplay(bergamoCoords, veroneCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        
+        return true;
+    },
+    
+    // Jour 10: Sienne - Naples - Sorrento
+    10: async (day, color) => {
+        const sienneCoords = [11.3301, 43.3184]; // Sienne
+        const cepranoCoords = [13.9136, 41.5569]; // Ceprano
+        const sorrentoCoords = [14.3757, 40.6263]; // Sorrento
+        
+        // Sienne à Ceprano
+        await fetchRouteAndDisplay(sienneCoords, cepranoCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Ceprano à Sorrento
+        await fetchRouteAndDisplay(cepranoCoords, sorrentoCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        
+        return true;
+    },
+    
+    // Jour 12: Sorrento - Naples - Rome
+    12: async (day, color) => {
+        const sorrentoCoords = [14.3757, 40.6263]; // Sorrento
+        const naplesCoords = [14.2681, 40.8518]; // Naples
+        const romeCoords = [12.4964, 41.9028]; // Rome
+        
+        // Sorrento à Naples
+        await fetchRouteAndDisplay(sorrentoCoords, naplesCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Naples à Rome
+        await fetchRouteAndDisplay(naplesCoords, romeCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        
+        return true;
+    },
+    
+    // Jour 15: Pise - La Spezia - Gênes
+    15: async (day, color) => {
+        const piseCoords = [10.4017, 43.7228]; // Pise
+        const viareggiCoords = [10.3063, 43.8833]; // Viareggio
+        const laSpezia = [9.8259, 44.1024]; // La Spezia
+        const riomaggioreCoords = [9.7379, 44.0999]; // Riomaggiore
+        const rapalloCoords = [9.2310, 44.3522]; // Rapallo
+        const genesCoords = [8.9463, 44.4056]; // Gênes
+        
+        // Pise à Viareggio
+        await fetchRouteAndDisplay(piseCoords, viareggiCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Viareggio à La Spezia
+        await fetchRouteAndDisplay(viareggiCoords, laSpezia, color, 4, 0.7, day.day, 'coast', 'mild');
+        // La Spezia à Riomaggiore
+        await fetchRouteAndDisplay(laSpezia, riomaggioreCoords, color, 4, 0.7, day.day, 'coast', 'mild');
+        // Riomaggiore à Rapallo
+        await fetchRouteAndDisplay(riomaggioreCoords, rapalloCoords, color, 4, 0.7, day.day, 'coast', 'mild');
+        // Rapallo à Gênes
+        await fetchRouteAndDisplay(rapalloCoords, genesCoords, color, 4, 0.7, day.day, 'coast', 'mild');
+        
+        return true;
+    },
+    
+    // Jour 16: Gênes - Château de Pizay
+    16: async (day, color) => {
+        const genesCoords = [8.9463, 44.4056]; // Gênes
+        const turinCoords = [7.6868, 45.0703]; // Turin
+        const chamberyCoords = [5.9175, 45.5647]; // Chambéry
+        const pizayCoords = [4.6500, 46.1500]; // Château de Pizay
+        
+        // Gênes à Turin
+        await fetchRouteAndDisplay(genesCoords, turinCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Turin à Chambéry
+        await fetchRouteAndDisplay(turinCoords, chamberyCoords, color, 4, 0.7, day.day, 'mountain', 'mild');
+        // Chambéry à Château de Pizay
+        await fetchRouteAndDisplay(chamberyCoords, pizayCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        
+        return true;
+    },
+    
+    // Jour 17: Château de Pizay - Marsinval
+    17: async (day, color) => {
+        const pizayCoords = [4.6500, 46.1500]; // Château de Pizay
+        const lyonCoords = [4.8357, 45.7640]; // Lyon
+        const dijonCoords = [5.0415, 47.3220]; // Dijon
+        const parisCoords = [2.3522, 48.8566]; // Paris
+        const marsinvalCoords = [1.9917, 48.9214]; // Marsinval
+        
+        // Château de Pizay à Lyon
+        await fetchRouteAndDisplay(pizayCoords, lyonCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Lyon à Dijon
+        await fetchRouteAndDisplay(lyonCoords, dijonCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Dijon à Paris
+        await fetchRouteAndDisplay(dijonCoords, parisCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+        // Paris à Marsinval
+        await fetchRouteAndDisplay(parisCoords, marsinvalCoords, color, 4, 0.7, day.day, 'city', 'mild');
+        
+        return true;
+    }
+};
         
         // Parcourir chaque jour
         for (let i = 0; i < roadtripData.days.length; i++) {

@@ -506,41 +506,47 @@ const specialRoutes = {
     },
     
     // Jour 16: Gênes - Château de Pizay
-    16: async (day, color) => {
-        const genesCoords = [8.9463, 44.4056]; // Gênes
-        const turinCoords = [7.6868, 45.0703]; // Turin
-        const chamberyCoords = [5.9175, 45.5647]; // Chambéry
-        const pizayCoords = [4.6500, 46.1500]; // Château de Pizay
-        
-        // Gênes à Turin
-        await fetchRouteAndDisplay(genesCoords, turinCoords, color, 4, 0.7, day.day, 'highway', 'mild');
-        // Turin à Chambéry
-        await fetchRouteAndDisplay(turinCoords, chamberyCoords, color, 4, 0.7, day.day, 'mountain', 'mild');
-        // Chambéry à Château de Pizay
-        await fetchRouteAndDisplay(chamberyCoords, pizayCoords, color, 4, 0.7, day.day, 'highway', 'mild');
-        
-        return true;
-    },
+16: async (day, color) => {
+    const genesCoords = [8.9463, 44.4056]; // Gênes
+    const turinCoords = [7.6868, 45.0703]; // Turin
+    const chamberyCoords = [5.9175, 45.5647]; // Chambéry
+    const lyonCoords = [4.8357, 45.7640]; // Lyon
+    const pizayCoords = [4.7324, 46.1738]; // Château de Pizay (coordonnées corrigées)
     
-    // Jour 17: Château de Pizay - Marsinval
-    17: async (day, color) => {
-        const pizayCoords = [4.6500, 46.1500]; // Château de Pizay
-        const lyonCoords = [4.8357, 45.7640]; // Lyon
-        const dijonCoords = [5.0415, 47.3220]; // Dijon
-        const parisCoords = [2.3522, 48.8566]; // Paris
-        const marsinvalCoords = [1.9917, 48.9214]; // Marsinval
-        
-        // Château de Pizay à Lyon
-        await fetchRouteAndDisplay(pizayCoords, lyonCoords, color, 4, 0.7, day.day, 'highway', 'mild');
-        // Lyon à Dijon
-        await fetchRouteAndDisplay(lyonCoords, dijonCoords, color, 4, 0.7, day.day, 'highway', 'mild');
-        // Dijon à Paris
-        await fetchRouteAndDisplay(dijonCoords, parisCoords, color, 4, 0.7, day.day, 'highway', 'mild');
-        // Paris à Marsinval
-        await fetchRouteAndDisplay(parisCoords, marsinvalCoords, color, 4, 0.7, day.day, 'city', 'mild');
-        
-        return true;
-    }
+    // Gênes à Turin
+    await fetchRouteAndDisplay(genesCoords, turinCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    // Turin à Chambéry
+    await fetchRouteAndDisplay(turinCoords, chamberyCoords, color, 4, 0.7, day.day, 'mountain', 'mild');
+    // Chambéry à Lyon
+    await fetchRouteAndDisplay(chamberyCoords, lyonCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    // Lyon à Château de Pizay
+    await fetchRouteAndDisplay(lyonCoords, pizayCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    
+    return true;
+},
+
+// Jour 17: Château de Pizay - Marsinval
+17: async (day, color) => {
+    const pizayCoords = [4.7324, 46.1738]; // Château de Pizay (coordonnées corrigées)
+    const maconCoords = [4.8330, 46.3069]; // Mâcon
+    const beauneCoords = [4.8400, 47.0258]; // Beaune
+    const dijonCoords = [5.0415, 47.3220]; // Dijon
+    const parisCoords = [2.3522, 48.8566]; // Paris
+    const marsinvalCoords = [1.9917, 48.9214]; // Marsinval
+    
+    // Château de Pizay à Mâcon
+    await fetchRouteAndDisplay(pizayCoords, maconCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    // Mâcon à Beaune
+    await fetchRouteAndDisplay(maconCoords, beauneCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    // Beaune à Dijon
+    await fetchRouteAndDisplay(beauneCoords, dijonCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    // Dijon à Paris
+    await fetchRouteAndDisplay(dijonCoords, parisCoords, color, 4, 0.7, day.day, 'highway', 'mild');
+    // Paris à Marsinval
+    await fetchRouteAndDisplay(parisCoords, marsinvalCoords, color, 4, 0.7, day.day, 'city', 'mild');
+    
+    return true;
+}
 };
         
         // Parcourir chaque jour

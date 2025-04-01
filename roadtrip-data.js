@@ -12,7 +12,7 @@ const roadtripData = {
                     activity: "Départ de Paris en Tesla Model 3",
                     tips: "Batterie pleine au départ, jeux et activités pour enfant préparés",
                     link: "https://abetterrouteplanner.com/?plan_uuid=c9d0b564-5e14-4ff7-a2db-20acfb79a8cf",
-                    icon: "fa-regular fa-circle-1",
+                    icon: "fas fa-house",
                     iconColor: "#8e44ad",
                     coordinates: [1.9917, 48.9214] // Marsinval
                 },
@@ -662,6 +662,8 @@ const roadtripData = {
             time: "13:30-18:00",
             activity: "Trajet Dijon - Marsinval",
             tips: "Long trajet sur autoroute",
+            icon: "fas fa-house",
+            iconColor: "#8e44ad",
             coordinates: [1.9917, 48.9214] // Marsinval
         }
     ]

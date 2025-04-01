@@ -369,9 +369,12 @@ async function fetchRouteAndDisplay(start, end, color, weight, opacity, dayNumbe
             
             // Données d'énergie, si disponibles
             let energyText = '';
+            let energyClass = '';
+            let batteryPercent = 0;
+            
             if (dayEnergyConsumption[dayNumber]) {
                 const energy = dayEnergyConsumption[dayNumber].toFixed(1);
-                const batteryPercent = ((energy / teslaConfig.batteryCapacity) * 100).toFixed(0);
+                batteryPercent = ((energy / teslaConfig.batteryCapacity) * 100).toFixed(0);
                 energyText = ` | ${energy} kWh (${batteryPercent}%)`;
                 
                 // Ajouter classe si consommation élevée

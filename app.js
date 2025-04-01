@@ -1,3 +1,58 @@
+// Configuration Tesla Model 3 Performance 2019 avec dégradation
+const teslaConfig = {
+    model: "Model 3 Performance 2019",
+    batteryCapacity: 75 * 0.85, // kWh (batterie de 75 kWh avec 15% de dégradation)
+    averageConsumption: 175, // Wh/km (consommation de base)
+    averageSpeed: 130, // km/h (vitesse moyenne sur autoroute ajustée)
+    chargingEfficiency: 0.92, // Efficacité de charge (92%)
+    // Facteurs affectant la consommation
+    factors: {
+        highway: 1.30, // Consommation autoroute à 130 km/h (+30%)
+        mountain: 1.35, // Routes montagneuses (+35%)
+        city: 0.85, // Conduite urbaine (-15%)
+        temperature: {
+            cold: 1.25, // Temps froid (<5°C) (+25%)
+            mild: 1.0, // Température modérée
+            hot: 1.15 // Temps chaud (>30°C) (+15%)
+        }
+    }
+};
+
+// Calcul de consommation d'énergie Tesla
+function calculateEnergyConsumption(distance, routeType = 'highway', temperature = 'mild') {
+    // Distance en km, consommation de base en Wh/km
+    let consumption = teslaConfig.averageConsumption;
+    
+    // Appliquer facteurs selon type de route
+    if (routeType === 'highway') {
+        consumption *= teslaConfig.factors.highway;
+    } else if (routeType === 'mountain') {
+        consumption *= teslaConfig.factors.mountain;
+    } else if (routeType === 'city') {
+        consumption *= teslaConfig.factors.city;
+    }
+    
+    // Appliquer facteur température
+    consumption *= teslaConfig.factors.temperature[temperature];
+    
+    // Calculer consommation totale en kWh
+    const totalConsumption = (consumption * distance) / 1000;
+    
+    // Calculer pourcentage de batterie utilisé
+    const batteryPercentage = (totalConsumption / teslaConfig.batteryCapacity) * 100;
+    
+    return {
+        distance: distance, // km
+        consumption: consumption, // Wh/km
+        totalEnergy: totalConsumption.toFixed(1), // kWh
+        batteryPercentage: batteryPercentage.toFixed(1), // %
+        remainingRange: ((teslaConfig.batteryCapacity - totalConsumption) / (consumption/1000)).toFixed(1) // km
+    };
+}
+
+// Objet pour stocker les consommations d'énergie par jour
+const dayEnergyConsumption = {};
+
 // Script principal pour initialiser la carte et les fonctionnalités
 document.addEventListener('DOMContentLoaded', function() {
     // Configuration de l'API GraphHopper
@@ -151,86 +206,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return !(isStartProblematic || isEndProblematic);
     }
     
-    // Fonction pour tracer un itinéraire entre deux points en utilisant GraphHopper
-    async function fetchRouteAndDisplay(start, end, color, weight, opacity, dayNumber) {
-        try {
-            // Corriger les coordonnées pour GraphHopper
-            const startCorrected = correctCoordinates(start);
-            const endCorrected = correctCoordinates(end);
-            
-            // Vérifier si les coordonnées sont dans une zone valide
-            const isValidRoute = checkValidRoute(startCorrected, endCorrected);
-            
-            if (!isValidRoute) {
-                console.warn("Route potentiellement non valide, utilisation du mode de secours", startCorrected, endCorrected);
-                // Utiliser une ligne droite pour les zones où l'API ne fonctionne pas bien
-                const polyline = L.polyline([startCorrected, endCorrected], {
-                    color: color || '#3388ff',
-                    weight: weight || 3,
-                    opacity: opacity || 0.7,
-                    dashArray: '5, 5' // Ligne pointillée pour indiquer une approximation
-                }).addTo(map);
-                
-                // Estimer la distance à vol d'oiseau
-                const estimatedDistance = calculateHaversineDistance(startCorrected, endCorrected);
-                
-                // Ajouter une estimation de distance au jour
-                if (dayNumber) {
-                    if (!dayDistances[dayNumber]) {
-                        dayDistances[dayNumber] = 0;
-                    }
-                    dayDistances[dayNumber] += estimatedDistance;
-                }
-                
-                return { polyline, distance: estimatedDistance };
-            }
-            
-            // Construction de l'URL GraphHopper avec la clé API depuis la variable de configuration
-            const url = `${graphHopperConfig.baseUrl}/route?point=${startCorrected[0]},${startCorrected[1]}&point=${endCorrected[0]},${endCorrected[1]}&vehicle=car&locale=fr&key=${graphHopperConfig.apiKey}&type=json`;
-            
-            // Appel API réel
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`GraphHopper API responded with status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            let polyline;
-            let distance = 0;
-            
-            if (data && data.paths && data.paths.length > 0) {
-                // Extraire la distance en kilomètres
-                distance = Math.round(data.paths[0].distance / 1000); // Convert meters to kilometers
-                
-                // Ajouter la distance au jour
-                if (dayNumber) {
-                    if (!dayDistances[dayNumber]) {
-                        dayDistances[dayNumber] = 0;
-                    }
-                    dayDistances[dayNumber] += distance;
-                }
-                
-                // Utiliser les points de l'itinéraire réel
-                const points = decodePolyline(data.paths[0].points).map(coord => [coord[0], coord[1]]);
-                polyline = L.polyline(points, {
-                    color: color || '#3388ff',
-                    weight: weight || 3,
-                    opacity: opacity || 0.7
-                }).addTo(map);
-            } else {
-                throw new Error("No path found in GraphHopper response");
-            }
-            
-            return { polyline, distance };
-        } catch (error) {
-            console.error("Erreur lors de la récupération de l'itinéraire:", error);
-            
-            // Fallback en cas d'erreur: tracer une ligne droite
-            const startCorrected = correctCoordinates(start);
-            const endCorrected = correctCoordinates(end);
-            
+async function fetchRouteAndDisplay(start, end, color, weight, opacity, dayNumber, routeType = 'highway', temperature = 'mild') {
+    try {
+        // Corriger les coordonnées pour GraphHopper
+        const startCorrected = correctCoordinates(start);
+        const endCorrected = correctCoordinates(end);
+        
+        // Vérifier si les coordonnées sont dans une zone valide
+        const isValidRoute = checkValidRoute(startCorrected, endCorrected);
+        
+        if (!isValidRoute) {
+            console.warn("Route potentiellement non valide, utilisation du mode de secours", startCorrected, endCorrected);
+            // Utiliser une ligne droite pour les zones où l'API ne fonctionne pas bien
             const polyline = L.polyline([startCorrected, endCorrected], {
                 color: color || '#3388ff',
                 weight: weight || 3,
@@ -238,20 +225,103 @@ document.addEventListener('DOMContentLoaded', function() {
                 dashArray: '5, 5' // Ligne pointillée pour indiquer une approximation
             }).addTo(map);
             
-            // Calculer la distance à vol d'oiseau
+            // Estimer la distance à vol d'oiseau
             const estimatedDistance = calculateHaversineDistance(startCorrected, endCorrected);
             
-            // Ajouter une estimation de distance au jour
+            // Calculer la consommation d'énergie
+            const energyData = calculateEnergyConsumption(estimatedDistance, routeType, temperature);
+            
+            // Ajouter une estimation de distance et d'énergie au jour
             if (dayNumber) {
                 if (!dayDistances[dayNumber]) {
                     dayDistances[dayNumber] = 0;
+                    dayEnergyConsumption[dayNumber] = 0;
                 }
                 dayDistances[dayNumber] += estimatedDistance;
+                dayEnergyConsumption[dayNumber] += parseFloat(energyData.totalEnergy);
             }
             
-            return { polyline, distance: estimatedDistance };
+            return { polyline, distance: estimatedDistance, energyData };
         }
+        
+        // Construction de l'URL GraphHopper avec la clé API depuis la variable de configuration
+        const url = `${graphHopperConfig.baseUrl}/route?point=${startCorrected[0]},${startCorrected[1]}&point=${endCorrected[0]},${endCorrected[1]}&vehicle=car&locale=fr&key=${graphHopperConfig.apiKey}&type=json`;
+        
+        // Appel API réel
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`GraphHopper API responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        let polyline;
+        let distance = 0;
+        let energyData = null;
+        
+        if (data && data.paths && data.paths.length > 0) {
+            // Extraire la distance en kilomètres
+            distance = Math.round(data.paths[0].distance / 1000);
+            
+            // Calculer la consommation d'énergie
+            energyData = calculateEnergyConsumption(distance, routeType, temperature);
+            
+            // Ajouter la distance et les données d'énergie au jour
+            if (dayNumber) {
+                if (!dayDistances[dayNumber]) {
+                    dayDistances[dayNumber] = 0;
+                    dayEnergyConsumption[dayNumber] = 0;
+                }
+                dayDistances[dayNumber] += distance;
+                dayEnergyConsumption[dayNumber] += parseFloat(energyData.totalEnergy);
+            }
+            
+            // Utiliser les points de l'itinéraire réel
+            const points = decodePolyline(data.paths[0].points).map(coord => [coord[0], coord[1]]);
+            polyline = L.polyline(points, {
+                color: color || '#3388ff',
+                weight: weight || 3,
+                opacity: opacity || 0.7
+            }).addTo(map);
+        } else {
+            throw new Error("No path found in GraphHopper response");
+        }
+        
+        return { polyline, distance, energyData };
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'itinéraire:", error);
+        
+        // Fallback en cas d'erreur: tracer une ligne droite
+        const startCorrected = correctCoordinates(start);
+        const endCorrected = correctCoordinates(end);
+        
+        const polyline = L.polyline([startCorrected, endCorrected], {
+            color: color || '#3388ff',
+            weight: weight || 3,
+            opacity: opacity || 0.7,
+            dashArray: '5, 5' // Ligne pointillée pour indiquer une approximation
+        }).addTo(map);
+        
+        // Calculer la distance à vol d'oiseau
+        const estimatedDistance = calculateHaversineDistance(startCorrected, endCorrected);
+        
+        // Calculer la consommation d'énergie
+        const energyData = calculateEnergyConsumption(estimatedDistance, routeType, temperature);
+        
+        // Ajouter une estimation de distance et d'énergie au jour
+        if (dayNumber) {
+            if (!dayDistances[dayNumber]) {
+                dayDistances[dayNumber] = 0;
+                dayEnergyConsumption[dayNumber] = 0;
+            }
+            dayDistances[dayNumber] += estimatedDistance;
+            dayEnergyConsumption[dayNumber] += parseFloat(energyData.totalEnergy);
+        }
+        
+        return { polyline, distance: estimatedDistance, energyData };
     }
+}
     
     // Fonction pour décoder le polyline encodé retourné par GraphHopper
     function decodePolyline(encoded) {
@@ -286,29 +356,53 @@ document.addEventListener('DOMContentLoaded', function() {
         return points;
     }
     
-    // Fonction pour mettre à jour l'affichage des distances
-    function updateDayDistances() {
-        // Pour chaque jour dans la sidebar
-        document.querySelectorAll('.dayItem').forEach(dayItem => {
-            const dayNumber = parseInt(dayItem.getAttribute('data-day'));
-            const distanceSpan = dayItem.querySelector('.day-distance');
+   function updateDayDistances() {
+    // Pour chaque jour dans la sidebar
+    document.querySelectorAll('.dayItem').forEach(dayItem => {
+        const dayNumber = parseInt(dayItem.getAttribute('data-day'));
+        const distanceSpan = dayItem.querySelector('.day-distance');
+        
+        // Si nous avons une distance pour ce jour
+        if (dayDistances[dayNumber]) {
+            // Préparer le texte avec distance et énergie
+            const distance = dayDistances[dayNumber];
             
-            // Si nous avons une distance pour ce jour et qu'un élément d'affichage existe
-            if (dayDistances[dayNumber] && distanceSpan) {
-                distanceSpan.textContent = `(${dayDistances[dayNumber]} km)`;
+            // Données d'énergie, si disponibles
+            let energyText = '';
+            if (dayEnergyConsumption[dayNumber]) {
+                const energy = dayEnergyConsumption[dayNumber].toFixed(1);
+                const batteryPercent = ((energy / teslaConfig.batteryCapacity) * 100).toFixed(0);
+                energyText = ` | ${energy} kWh (${batteryPercent}%)`;
+                
+                // Ajouter classe si consommation élevée
+                if (batteryPercent > 80) {
+                    energyClass = 'high-consumption';
+                }
+            }
+            
+            // Si l'élément span existe déjà
+            if (distanceSpan) {
+                distanceSpan.textContent = `(${distance} km${energyText})`;
+                if (energyText && batteryPercent > 80) {
+                    distanceSpan.classList.add('high-consumption');
+                }
             } 
-            // Si nous avons une distance mais pas d'élément d'affichage
-            else if (dayDistances[dayNumber]) {
+            // Sinon créer un nouveau span
+            else {
                 const dateDiv = dayItem.querySelector('.dayDate');
                 if (dateDiv) {
                     const distanceElement = document.createElement('span');
                     distanceElement.className = 'day-distance';
-                    distanceElement.textContent = ` (${dayDistances[dayNumber]} km)`;
+                    if (energyText && batteryPercent > 80) {
+                        distanceElement.classList.add('high-consumption');
+                    }
+                    distanceElement.textContent = ` (${distance} km${energyText})`;
                     dateDiv.appendChild(distanceElement);
                 }
             }
-        });
-    }
+        }
+    });
+}
     
     // Fonction améliorée pour tracer les itinéraires
     async function drawMainRoutes() {
@@ -326,9 +420,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const veroneCoords = [10.9916, 45.4384]; // Vérone
                 
                 // Milan à Côme
-                await fetchRouteAndDisplay(milanCoords, comeCoords, color, 4, 0.7, day.day);
+               await fetchRouteAndDisplay(milanCoords, comeCoords, color, 4, 0.7, day.day, 'city', 'mild');
                 // Côme à Tremezzo
-                await fetchRouteAndDisplay(comeCoords, tremezzo, color, 4, 0.7, day.day);
+                await fetchRouteAndDisplay(comeCoords, tremezzo, color, 4, 0.7, day.day, 'mountain', 'mild');
                 // Traversée en ferry (ligne pointillée)
                 const ferryLine = L.polyline([
                     correctCoordinates(tremezzo), 
@@ -396,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Lugano à Bellinzona
                 await fetchRouteAndDisplay(lugano, bellinzona, color, 4, 0.7, day.day);
                 // Bellinzona à Andermatt
-                await fetchRouteAndDisplay(bellinzona, andermatt, color, 4, 0.7, day.day);
+                await fetchRouteAndDisplay(bellinzona, andermatt, color, 4, 0.7, day.day, 'mountain', 'cold');
                 
                 return true;
             },

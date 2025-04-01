@@ -4,7 +4,7 @@ const roadtripData = {
     days: [
         {
             day: 1,
-            title: "Paris - Annecy",
+            title: "Marsinval - Annecy",
             date: "2025-04-11",
             activities: [
                 {
@@ -14,7 +14,7 @@ const roadtripData = {
                     link: "https://abetterrouteplanner.com/?plan_uuid=c9d0b564-5e14-4ff7-a2db-20acfb79a8cf",
                     icon: "fa-regular fa-circle-1",
                     iconColor: "#8e44ad",
-                    coordinates: [2.3522, 48.8566] // Paris
+                    coordinates: [1.9917, 48.9214] // Marsinval
                 },
                 {
                     time: "16:45-17:30",

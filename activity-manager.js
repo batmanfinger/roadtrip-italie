@@ -1,53 +1,97 @@
 /**
  * Activity Manager - Module d'ajout d'activités pour Roadtrip en Italie
- * Version sans eval() pour respecter la politique CSP
+ * Version avec délais d'attente augmentés pour éviter les erreurs de timeout
  */
 
 (function() {
-    // Attendre que la page soit complètement chargée
+    // Variables pour le suivi des tentatives
+    let initializationComplete = false;
+    let initAttempts = 0;
+    const MAX_ATTEMPTS = 20;
+    const RETRY_DELAY = 1000; // 1 seconde entre les tentatives
+    
+    // Initialiser lorsque la fenêtre est complètement chargée
     window.addEventListener('load', function() {
-        console.log("Page chargée, démarrage de l'initialisation du gestionnaire d'activités");
-        // Attendre encore un peu pour s'assurer que les scripts sont exécutés
-        setTimeout(checkAndInitActivityManager, 3000);
+        console.log("Fenêtre chargée, démarrage de l'initialisation du gestionnaire d'activités");
+        // Attendre que tous les scripts soient chargés
+        setTimeout(beginInitialization, 3000); // Attente initiale de 3 secondes
     });
 
-    // Vérifier les dépendances et initialiser
-    function checkAndInitActivityManager() {
-        if (typeof L !== 'undefined' && 
-            typeof window.map !== 'undefined' && 
-            typeof window.roadtripData !== 'undefined' && 
-            typeof window.markerGroups !== 'undefined') {
-            
-            console.log("Toutes les dépendances sont disponibles, initialisation du gestionnaire d'activités");
-            initActivityManager();
-        } else {
-            console.log("Dépendances non disponibles:", {
-                "Leaflet": typeof L !== 'undefined',
-                "map": typeof window.map !== 'undefined',
-                "roadtripData": typeof window.roadtripData !== 'undefined',
-                "markerGroups": typeof window.markerGroups !== 'undefined'
-            });
-            
-            // Ajouter un bouton pour initialisation manuelle
-            if (!document.getElementById('manualInitButton')) {
-                const button = document.createElement('button');
-                button.id = 'manualInitButton';
-                button.innerHTML = 'Initialiser le gestionnaire d\'activités';
-                button.style.position = 'fixed';
-                button.style.bottom = '130px';
-                button.style.left = '15px';
-                button.style.zIndex = '1001';
-                button.style.backgroundColor = '#3498db';
-                button.style.color = 'white';
-                button.style.border = 'none';
-                button.style.borderRadius = '4px';
-                button.style.padding = '8px 12px';
-                button.onclick = function() {
-                    document.getElementById('manualInitButton').remove();
-                    checkAndInitActivityManager();
-                };
-                document.body.appendChild(button);
+    // Commencer la séquence d'initialisation
+    function beginInitialization() {
+        // Vérifier si Leaflet et la carte sont disponibles
+        if (typeof L === 'undefined' || !document.getElementById('map')) {
+            console.log("Leaflet ou l'élément de carte n'est pas encore disponible. Nouvelle tentative dans 1 seconde.");
+            if (++initAttempts <= MAX_ATTEMPTS) {
+                setTimeout(beginInitialization, RETRY_DELAY);
+            } else {
+                addManualInitButton();
             }
+            return;
+        }
+        
+        // À ce stade, Leaflet est disponible, mais la carte peut ne pas être initialisée
+        // Attendre quelques secondes de plus
+        setTimeout(checkMapInitialization, 2000);
+    }
+    
+    // Vérifier si la carte est initialisée
+    function checkMapInitialization() {
+        if (!window.map) {
+            console.log("L'objet carte n'est pas encore initialisé. Nouvelle tentative dans 1 seconde.");
+            if (++initAttempts <= MAX_ATTEMPTS) {
+                setTimeout(checkMapInitialization, RETRY_DELAY);
+            } else {
+                addManualInitButton();
+            }
+            return;
+        }
+        
+        // La carte est disponible, vérifier les données et groupes de marqueurs
+        setTimeout(checkDataAndGroups, 1000);
+    }
+    
+    // Vérifier les données et groupes de marqueurs
+    function checkDataAndGroups() {
+        if (!window.roadtripData || !window.markerGroups) {
+            console.log("Les données du roadtrip ou les groupes de marqueurs ne sont pas encore disponibles. Nouvelle tentative dans 1 seconde.");
+            if (++initAttempts <= MAX_ATTEMPTS) {
+                setTimeout(checkDataAndGroups, RETRY_DELAY);
+            } else {
+                addManualInitButton();
+            }
+            return;
+        }
+        
+        // Tout est prêt, initialiser le gestionnaire d'activités
+        console.log("Tous les éléments nécessaires sont disponibles. Initialisation du gestionnaire d'activités.");
+        initializationComplete = true;
+        initActivityManager();
+    }
+    
+    // Ajouter un bouton pour l'initialisation manuelle
+    function addManualInitButton() {
+        if (!document.getElementById('manualInitButton')) {
+            console.log("Nombre maximum de tentatives dépassé. Ajout d'un bouton d'initialisation manuelle.");
+            const button = document.createElement('button');
+            button.id = 'manualInitButton';
+            button.textContent = 'Initialiser le gestionnaire d\'activités';
+            button.style.position = 'fixed';
+            button.style.bottom = '130px';
+            button.style.left = '15px';
+            button.style.zIndex = '1001';
+            button.style.backgroundColor = '#3498db';
+            button.style.color = 'white';
+            button.style.border = 'none';
+            button.style.borderRadius = '4px';
+            button.style.padding = '8px 12px';
+            button.style.cursor = 'pointer';
+            button.onclick = function() {
+                initAttempts = 0;
+                beginInitialization();
+                button.remove();
+            };
+            document.body.appendChild(button);
         }
     }
 
@@ -282,6 +326,18 @@
 
     // Initialisation de la fonctionnalité
     function initActivityManager() {
+        // Suppression du bouton d'initialisation manuelle s'il existe
+        const manualInitButton = document.getElementById('manualInitButton');
+        if (manualInitButton) {
+            manualInitButton.remove();
+        }
+
+        // Vérifier si le gestionnaire est déjà initialisé
+        if (document.getElementById('addActivityButton')) {
+            console.log("Le gestionnaire d'activités est déjà initialisé.");
+            return;
+        }
+
         // Injecter les styles CSS
         injectStyles();
         
@@ -393,25 +449,11 @@
                 // Accéder aux icônes définies dans l'application
                 let icon;
                 
-                if (window.cityIcon && window.chargingIcon && window.visitIcon) {
-                    // Utiliser les icônes existantes
-                    icon = window.cityIcon; // Par défaut
-                    
+                try {
                     // Déterminer l'icône en fonction du type d'activité
                     if (activity.activity.toLowerCase().includes('recharge') ||
                         activity.activity.toLowerCase().includes('superchargeur')) {
-                        icon = window.chargingIcon;
-                    } else if (activity.activity.toLowerCase().includes('visite') ||
-                            activity.activity.toLowerCase().includes('musée') ||
-                            activity.activity.toLowerCase().includes('promenade') ||
-                            activity.activity.toLowerCase().includes('exploration')) {
-                        icon = window.visitIcon;
-                    }
-                } else {
-                    // Créer de nouvelles icônes si nécessaire
-                    if (activity.activity.toLowerCase().includes('recharge') ||
-                        activity.activity.toLowerCase().includes('superchargeur')) {
-                        icon = L.divIcon({
+                        icon = window.chargingIcon || L.divIcon({
                             className: 'marker-charging',
                             html: '<i class="fas fa-charging-station"></i>',
                             iconSize: [30, 30],
@@ -421,28 +463,42 @@
                             activity.activity.toLowerCase().includes('musée') ||
                             activity.activity.toLowerCase().includes('promenade') ||
                             activity.activity.toLowerCase().includes('exploration')) {
-                        icon = L.divIcon({
+                        icon = window.visitIcon || L.divIcon({
                             className: 'marker-visit',
                             html: '<i class="fas fa-camera"></i>',
                             iconSize: [30, 30],
                             iconAnchor: [15, 15]
                         });
                     } else {
-                        icon = L.divIcon({
+                        icon = window.cityIcon || L.divIcon({
                             className: 'marker-city',
                             html: '<i class="fas fa-city"></i>',
                             iconSize: [30, 30],
                             iconAnchor: [15, 15]
                         });
                     }
+                } catch (e) {
+                    // En cas d'erreur, utiliser une icône par défaut
+                    console.log("Erreur lors de la création de l'icône:", e);
+                    icon = L.divIcon({
+                        className: 'marker-city',
+                        html: '<i class="fas fa-map-marker-alt"></i>',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
                 }
                 
                 // Corriger les coordonnées (inversion longitude/latitude)
                 let correctedCoords;
-                if (typeof window.correctCoordinates === 'function') {
-                    correctedCoords = window.correctCoordinates(activity.coordinates);
-                } else {
-                    // Fonction de secours
+                try {
+                    if (typeof window.correctCoordinates === 'function') {
+                        correctedCoords = window.correctCoordinates(activity.coordinates);
+                    } else {
+                        // Fonction de secours
+                        correctedCoords = [activity.coordinates[1], activity.coordinates[0]];
+                    }
+                } catch (e) {
+                    console.log("Erreur lors de la correction des coordonnées:", e);
                     correctedCoords = [activity.coordinates[1], activity.coordinates[0]];
                 }
                 
@@ -472,18 +528,28 @@
                 marker.bindPopup(popupContent);
                 
                 // Ajouter le marqueur au groupe du jour
-                if (window.markerGroups[dayNumber]) {
-                    marker.addTo(window.markerGroups[dayNumber]);
-                } else {
-                    // Si le groupe n'existe pas encore, le créer
-                    window.markerGroups[dayNumber] = L.layerGroup();
-                    marker.addTo(window.markerGroups[dayNumber]);
-                    window.markerGroups[dayNumber].addTo(window.map);
+                try {
+                    if (window.markerGroups[dayNumber]) {
+                        marker.addTo(window.markerGroups[dayNumber]);
+                    } else {
+                        // Si le groupe n'existe pas encore, le créer
+                        window.markerGroups[dayNumber] = L.layerGroup();
+                        marker.addTo(window.markerGroups[dayNumber]);
+                        window.markerGroups[dayNumber].addTo(window.map);
+                    }
+                } catch (e) {
+                    console.log("Erreur lors de l'ajout du marqueur au groupe:", e);
+                    // Ajouter directement à la carte
+                    marker.addTo(window.map);
                 }
                 
                 // Optionnellement, mettre à jour les distances et la consommation d'énergie
-                if (typeof window.updateDayDistances === 'function') {
-                    setTimeout(window.updateDayDistances, 500);
+                try {
+                    if (typeof window.updateDayDistances === 'function') {
+                        setTimeout(window.updateDayDistances, 1000); // Délai plus long
+                    }
+                } catch (e) {
+                    console.log("Erreur lors de la mise à jour des distances:", e);
                 }
             }
         }
@@ -492,76 +558,87 @@
         form.addEventListener('submit', (event) => {
             event.preventDefault();
             
-            // Récupérer les valeurs du formulaire
-            const dayNumber = parseInt(document.getElementById('activityDay').value);
-            const time = document.getElementById('activityTime').value;
-            const title = document.getElementById('activityTitle').value;
-            const tips = document.getElementById('activityTips').value;
-            const link = document.getElementById('activityLink').value;
-            const lat = document.getElementById('activityLat').value;
-            const lng = document.getElementById('activityLng').value;
-            
-            if (!lat || !lng) {
-                alert("Veuillez sélectionner un emplacement sur la carte");
-                return;
-            }
-            
-            // Créer l'objet activité
-            const newActivity = {
-                time: time,
-                activity: title,
-                tips: tips || "",
-                link: link || "",
-                coordinates: [parseFloat(lng), parseFloat(lat)]
-            };
-            
-            // Ajouter l'activité aux données
-            const dayIndex = roadtripData.days.findIndex(day => day.day === dayNumber);
-            if (dayIndex !== -1) {
-                roadtripData.days[dayIndex].activities.push(newActivity);
+            try {
+                // Récupérer les valeurs du formulaire
+                const dayNumber = parseInt(document.getElementById('activityDay').value);
+                const time = document.getElementById('activityTime').value;
+                const title = document.getElementById('activityTitle').value;
+                const tips = document.getElementById('activityTips').value;
+                const link = document.getElementById('activityLink').value;
+                const lat = document.getElementById('activityLat').value;
+                const lng = document.getElementById('activityLng').value;
                 
-                // Trier les activités par heure
-                roadtripData.days[dayIndex].activities.sort((a, b) => {
-                    const timeA = a.time.split('-')[0];
-                    const timeB = b.time.split('-')[0];
-                    return timeA.localeCompare(timeB);
-                });
-                
-                // Mettre à jour l'affichage
-                updateDayDisplay(dayNumber);
-                
-                // Ajouter le marqueur à la carte
-                addActivityMarker(newActivity, dayNumber);
-                
-                // Fermer le modal
-                closeAddActivityModal();
-                
-                // Message de confirmation
-                alert(`Activité "${title}" ajoutée au jour ${dayNumber}`);
-                
-                // Fonction pour exporter les données
-                const exportButton = document.createElement('button');
-                exportButton.textContent = "Exporter les données mises à jour";
-                exportButton.className = "btn-primary";
-                exportButton.style.position = "fixed";
-                exportButton.style.top = "10px";
-                exportButton.style.right = "10px";
-                exportButton.style.zIndex = "1500";
-                
-                exportButton.addEventListener('click', () => {
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadtripData, null, 2));
-                    const downloadAnchorNode = document.createElement('a');
-                    downloadAnchorNode.setAttribute("href", dataStr);
-                    downloadAnchorNode.setAttribute("download", "roadtrip-data-updated.js");
-                    document.body.appendChild(downloadAnchorNode);
-                    downloadAnchorNode.click();
-                    downloadAnchorNode.remove();
-                });
-                
-                if (!document.getElementById('exportDataButton')) {
-                    exportButton.id = 'exportDataButton';
-                    document.body.appendChild(exportButton);
+                if (!lat || !lng) {
+                    alert("Veuillez sélectionner un emplacement sur la carte");
+                    return;
                 }
+                
+                // Créer l'objet activité
+                const newActivity = {
+                    time: time,
+                    activity: title,
+                    tips: tips || "",
+                    link: link || "",
+                    coordinates: [parseFloat(lng), parseFloat(lat)]
+                };
+                
+                // Ajouter l'activité aux données
+                const dayIndex = roadtripData.days.findIndex(day => day.day === dayNumber);
+                if (dayIndex !== -1) {
+                    roadtripData.days[dayIndex].activities.push(newActivity);
+                    
+                    // Trier les activités par heure
+                    roadtripData.days[dayIndex].activities.sort((a, b) => {
+                        const timeA = a.time.split('-')[0];
+                        const timeB = b.time.split('-')[0];
+                        return timeA.localeCompare(timeB);
+                    });
+                    
+                    // Mettre à jour l'affichage
+                    updateDayDisplay(dayNumber);
+                    
+                    // Ajouter le marqueur à la carte avec un délai
+                    setTimeout(() => {
+                        try {
+                            addActivityMarker(newActivity, dayNumber);
+                        } catch (e) {
+                            console.log("Erreur lors de l'ajout du marqueur:", e);
+                        }
+                    }, 500);
+                    
+                    // Fermer le modal
+                    closeAddActivityModal();
+                    
+                    // Message de confirmation
+                    alert(`Activité "${title}" ajoutée au jour ${dayNumber}`);
+                    
+                    // Fonction pour exporter les données
+                    const exportButton = document.createElement('button');
+                    exportButton.textContent = "Exporter les données mises à jour";
+                    exportButton.className = "btn-primary";
+                    exportButton.style.position = "fixed";
+                    exportButton.style.top = "10px";
+                    exportButton.style.right = "10px";
+                    exportButton.style.zIndex = "1500";
+                    
+                    exportButton.addEventListener('click', () => {
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadtripData, null, 2));
+                        const downloadAnchorNode = document.createElement('a');
+                        downloadAnchorNode.setAttribute("href", dataStr);
+                        downloadAnchorNode.setAttribute("download", "roadtrip-data-updated.js");
+                        document.body.appendChild(downloadAnchorNode);
+                        downloadAnchorNode.click();
+                        downloadAnchorNode.remove();
+                    });
+                    
+                    if (!document.getElementById('exportDataButton')) {
+                        exportButton.id = 'exportDataButton';
+                        document.body.appendChild(exportButton);
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur lors de l'ajout de l'activité:", e);
+                alert("Une erreur s'est produite lors de l'ajout de l'activité. Veuillez réessayer.");
             }
         });
         
@@ -569,5 +646,7 @@
         button.addEventListener('click', () => {
             modal.style.display = 'block';
         });
+        
+        console.log("Gestionnaire d'activités initialisé avec succès!");
     }
 })();
